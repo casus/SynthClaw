@@ -1,6 +1,6 @@
 import os
 import json
-from synthclaw import analyze_blender_file
+from synthclaw import analyze_blend
 
 def test_blender_skill():
     # Attempt to resolve the path to the assets folder relative to this file
@@ -14,11 +14,11 @@ def test_blender_skill():
         return
 
     print("\n--- Analyzing Low Realism File ---")
-    low_res = analyze_blender_file(low_blend)
+    low_res = analyze_blend(low_blend)
     print(json.dumps(low_res, indent=2))
 
     print("\n--- Analyzing High Realism File ---")
-    high_res = analyze_blender_file(high_blend)
+    high_res = analyze_blend(high_blend)
     print(json.dumps(high_res, indent=2))
 
 if __name__ == "__main__":

@@ -61,11 +61,15 @@ blender --version
 
 ## 🤖 Agentic Workflow
 
+### Node Manipulation and Rendering
 1. **User Input:** "Make the displacement more aggressive."
 2. **LLM Reasoning:** The LLM looks at the tool schema, sees a parameter named `DisplacementStrength`, and decides to increase its value from `1.0` to `2.5`.
 3. **Execution:** OpenClaw runs Blender in **Headless Mode** (`-b`).
 4. **Modification:** `agent_bridge.py` iterates through all materials, finds the node named `DisplacementStrength`, and updates it.
 5. **Output:** A `.png` is rendered and the path is returned to the user.
+
+### Scene Complexity Analysis
+Before rendering, the agent can run `analyze_blend`. This script parses the `.blend` file without launching GUI overhead. It examines poly-count, material configurations, lighting rigs, and rendering setups to produce a **Complexity & Realism Score**. This gives agents foresight on the visual quality they can generate.
 
 ---
 
@@ -83,5 +87,3 @@ blender --version
 * **Animation Support:** Extend the skill to accept `start_frame` and `end_frame` for procedural motion sequences.
 
 ---
-
-**Would you like me to create a shell script that automates the testing of these files by simulating an OpenClaw tool call?**

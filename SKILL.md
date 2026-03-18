@@ -63,7 +63,7 @@ Adjusts procedural Value Nodes and renders a frame in Blender.
 *Production quality (CYCLES):*
 ```json
 {
-  "blend_file": "/home/user/project/assets/low.blend",
+  "blend_file": "/home/user/project/assets/test.blend",
   "output_path": "/home/user/output/render_01.png",
   "parameters": {
     "GrainScale": 3.0,
@@ -77,7 +77,7 @@ Adjusts procedural Value Nodes and renders a frame in Blender.
 *Fast testing (EEVEE):*
 ```json
 {
-  "blend_file": "/home/user/project/assets/low.blend",
+  "blend_file": "/home/user/project/assets/test.blend",
   "output_path": "/home/user/output/test_render.png",
   "parameters": {
     "GrainScale": 3.0
@@ -112,7 +112,7 @@ Analyzes a .blend file and returns available Value Nodes that can be manipulated
 **Parameters:**
 - `blend_file` (string, required): Absolute path to the .blend file
 
-**Returns:** List of available parameter names with current values
+**Returns:** Dict containing `status`, a `complexity` object evaluating scene realism, and `value_nodes` (available parameter names with current values).
 
 ## Engine Comparison
 

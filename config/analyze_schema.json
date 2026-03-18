@@ -1,6 +1,6 @@
 {
     "name": "analyze_blender_file",
-    "description": "Headlessly analyzes a Blender file to extract realism metrics like render engine, samples, bounces, and procedural node values.",
+    "description": "Headlessly analyzes a Blender file to extract its manipulatable procedural node parameters AND evaluates its mathematical complexity to return a natural-language description of how realistic the imagery would be.",
     "parameters": {
         "type": "object",
         "properties": {

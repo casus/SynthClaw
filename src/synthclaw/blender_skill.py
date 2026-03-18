@@ -1,5 +1,6 @@
 import subprocess
 import os
+import json
 
 MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPTS_DIR = os.path.abspath(os.path.join(MODULE_DIR, "..", "..", "scripts"))
@@ -163,11 +164,20 @@ def analyze_blend(blend_file: str):
             check=True,
             timeout=60  # 1 minute timeout for analysis
         )
-        return {
-            "status": "success",
-            "parameters": result.stdout.strip(),
-            "blend_file": blend_file
-        }
+        
+        output = result.stdout
+        if "---ANALYSIS_START---" in output and "---ANALYSIS_END---" in output:
+            start = output.find("---ANALYSIS_START---") + len("---ANALYSIS_START---\n")
+            end = output.find("---ANALYSIS_END---")
+            json_str = output[start:end].strip()
+            return {
+                "status": "success",
+                "parameters": json.loads(json_str),
+                "blend_file": blend_file
+            }
+        else:
+            return {"status": "error", "message": "Failed to find analysis markers in output.", "log": output[-500:]}
+            
     except subprocess.TimeoutExpired:
         return {"status": "error", "message": "Analysis timed out after 60 seconds"}
     except subprocess.CalledProcessError as e:
