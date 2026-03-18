@@ -1,0 +1,17 @@
+{
+  "name": "tweak_blender_procedural",
+  "description": "Renders a procedural scene. Pass node names as keys and floats as values.",
+  "parameters": {
+    "type": "object",
+    "properties": {
+      "blend_file": { "type": "string", "description": "Full path to .blend file" },
+      "output_path": { "type": "string", "description": "Where to save the PNG" },
+      "parameters": {
+        "type": "object",
+        "description": "Dictionary of Blender Value Node names and their new values.",
+        "additionalProperties": { "type": "number" }
+      }
+    },
+    "required": ["blend_file", "output_path", "parameters"]
+  }
+}

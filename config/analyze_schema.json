@@ -1,0 +1,16 @@
+{
+    "name": "analyze_blender_file",
+    "description": "Headlessly analyzes a Blender file to extract realism metrics like render engine, samples, bounces, and procedural node values.",
+    "parameters": {
+        "type": "object",
+        "properties": {
+            "blend_file": {
+                "type": "string",
+                "description": "Full path to .blend file (e.g., assets/high.blend)"
+            }
+        },
+        "required": [
+            "blend_file"
+        ]
+    }
+}
