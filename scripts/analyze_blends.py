@@ -1,64 +1,55 @@
 import bpy
 import json
-import sys
 
-def extract_features():
-    scene = bpy.context.scene
-    
-    # Render Engine
-    engine = scene.render.engine
-    
-    # Compute samples and bounces based on engine
-    if engine == 'CYCLES':
-        samples = scene.cycles.samples
-        bounces = scene.cycles.max_bounces
-        diffuse_bounces = scene.cycles.diffuse_bounces
-        glossy_bounces = scene.cycles.glossy_bounces
-        transmission_bounces = scene.cycles.transmission_bounces
-    elif engine in ['BLENDER_EEVEE_NEXT', 'BLENDER_EEVEE']:
-        samples = scene.eevee.taa_render_samples
-        bounces = "N/A (EEVEE)"
-        diffuse_bounces = "N/A"
-        glossy_bounces = "N/A"
-        transmission_bounces = "N/A"
-    else:
-        samples = "Unknown"
-        bounces = "Unknown"
-        diffuse_bounces = "Unknown"
-        glossy_bounces = "Unknown"
-        transmission_bounces = "Unknown"
 
-    # Resolution settings
-    res_x = scene.render.resolution_x
-    res_y = scene.render.resolution_y
-    res_perc = scene.render.resolution_percentage
-    
-    # Extract exposed parameter nodes (which affect procedural textures)
+def main():
+    """
+    Analyzes a Blender file and outputs available Value Nodes as JSON.
+    """
     value_nodes = {}
+    
+    # Iterate through all materials
     for mat in bpy.data.materials:
         if not mat.use_nodes:
             continue
-        for node in mat.node_tree.nodes:
-            if node.type == 'VALUE' and node.name:
-                value_nodes[f"{mat.name}::{node.name}"] = node.outputs[0].default_value
+        
+        nodes = mat.node_tree.nodes
+        for node in nodes:
+            # Look for Value nodes that can be manipulated
+            if node.type == 'VALUE':
+                node_name = node.name
+                current_value = node.outputs[0].default_value
+                value_nodes[node_name] = {
+                    "value": current_value,
+                    "material": mat.name
+                }
+    
+    # Also check for geometry nodes if present
+    try:
+        if bpy.data.node_groups:
+            for group in bpy.data.node_groups:
+                for node in group.nodes:
+                    if node.type == 'VALUE':
+                        node_name = node.name
+                        current_value = node.outputs[0].default_value
+                        value_nodes[f"{group.name}.{node_name}"] = {
+                            "value": current_value,
+                            "node_group": group.name
+                        }
+    except Exception as e:
+        print(f"Note: Could not check geometry nodes: {e}")
+    
+    # Output as JSON for easy parsing
+    print(json.dumps(value_nodes, indent=2))
+    
+    # Also print human-readable summary
+    print(f"\n\nFound {len(value_nodes)} manipulatable Value Nodes:")
+    for name, info in value_nodes.items():
+        if "material" in info:
+            print(f"  - {name} (material: {info['material']}) = {info['value']}")
+        else:
+            print(f"  - {name} (node group: {info['node_group']}) = {info['value']}")
 
-    data = {
-        "render_engine": engine,
-        "resolution": f"{res_x}x{res_y} @ {res_perc}%",
-        "samples": samples,
-        "light_bounces": {
-            "max": bounces,
-            "diffuse": diffuse_bounces,
-            "glossy": glossy_bounces,
-            "transmission": transmission_bounces
-        },
-        "value_nodes": value_nodes
-    }
-
-    # Print out pure JSON between recognizable markers
-    print("---ANALYSIS_START---")
-    print(json.dumps(data, indent=2))
-    print("---ANALYSIS_END---")
 
 if __name__ == "__main__":
-    extract_features()
+    main()

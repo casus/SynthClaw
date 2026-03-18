@@ -5,18 +5,65 @@ MODULE_DIR = os.path.dirname(os.path.abspath(__file__))
 SCRIPTS_DIR = os.path.abspath(os.path.join(MODULE_DIR, "..", "..", "scripts"))
 SCRIPT_PATH = os.path.join(SCRIPTS_DIR, "agent_bridge.py")
 
-def render_procedural_scene(blend_file: str, output_path: str, parameters: dict):
+# Default timeouts
+DEFAULT_TIMEOUT_CYCLES = 1800      # 30 minutes for Cycles (production quality)
+DEFAULT_TIMEOUT_EEVEE = 60          # 1 minute for EEVEE (fast testing)
+
+
+def render_procedural_scene(
+    blend_file: str, 
+    output_path: str, 
+    parameters: dict, 
+    samples: int = 128,
+    engine: str = "CYCLES",
+    timeout: int = None
+):
     """
     OpenClaw Skill: Executes Blender in background mode to render a procedural scene.
     
     :param blend_file: Absolute path to the .blend file.
     :param output_path: Where to save the resulting image (e.g., /tmp/render.png).
     :param parameters: A dictionary of node names and float values (e.g., {"Scale": 5.0}).
+    :param samples: Cycles samples for rendering (default: 128). Ignored for EEVEE.
+    :param engine: Render engine - "CYCLES" (production) or "EEVEE" (fast testing).
+    :param timeout: Custom timeout in seconds. Defaults based on engine.
+    :return: Dict with status, output path, and log or error message.
     """
-    # 1. Format parameters for the Blender script (key=value)
+    # Validate engine choice
+    engine = engine.upper()
+    if engine not in ["CYCLES", "EEVEE", "BLENDER_EEVEE_NEXT"]:
+        return {"status": "error", "message": f"Invalid engine '{engine}'. Use 'CYCLES' or 'EEVEE'"}
+    
+    # Set default timeout based on engine
+    if timeout is None:
+        timeout = DEFAULT_TIMEOUT_CYCLES if engine == "CYCLES" else DEFAULT_TIMEOUT_EEVEE
+    
+    # Validate blend file exists
+    if not os.path.exists(blend_file):
+        return {"status": "error", "message": f"Blend file not found: {blend_file}"}
+    
+    # Validate output directory exists
+    output_dir = os.path.dirname(os.path.abspath(output_path))
+    if output_dir and not os.path.exists(output_dir):
+        try:
+            os.makedirs(output_dir, exist_ok=True)
+        except OSError as e:
+            return {"status": "error", "message": f"Cannot create output directory: {e}"}
+    
+    # Validate parameters are numeric
+    for k, v in parameters.items():
+        if not isinstance(v, (int, float)):
+            return {"status": "error", "message": f"Parameter '{k}' must be a number, got {type(v).__name__}"}
+    
+    # Format parameters for the Blender script (key=value)
     param_args = [f"{k}={v}" for k, v in parameters.items()]
     
-    # 2. Build the CLI command
+    # Pass engine and samples to the Blender script via environment variables
+    env = os.environ.copy()
+    env["BLENDER_ENGINE"] = engine
+    env["BLENDER_SAMPLES"] = str(samples)
+    
+    # Build the CLI command
     # -b: background, -P: run python script, -o: output, -f 1: render frame 1
     command = [
         "blender", 
@@ -28,10 +75,104 @@ def render_procedural_scene(blend_file: str, output_path: str, parameters: dict)
     ] + param_args
 
     try:
-        result = subprocess.run(command, capture_output=True, text=True, check=True)
-        return {"status": "success", "output": output_path, "log": result.stdout[-500:]}
+        result = subprocess.run(
+            command, 
+            capture_output=True, 
+            text=True, 
+            check=True,
+            timeout=timeout,
+            env=env
+        )
+        return {
+            "status": "success", 
+            "output": output_path, 
+            "log": result.stdout[-500:],
+            "engine": engine,
+            "samples": samples if engine == "CYCLES" else None
+        }
+    except subprocess.TimeoutExpired:
+        return {"status": "error", "message": f"Render timed out after {timeout} seconds"}
     except subprocess.CalledProcessError as e:
         return {"status": "error", "message": e.stderr}
+
+
+def render_procedural_scene_fast(
+    blend_file: str, 
+    output_path: str, 
+    parameters: dict
+):
+    """
+    Convenience function for fast EEVEE rendering (testing).
+    Same as render_procedural_scene with engine='EEVEE'.
+    """
+    return render_procedural_scene(
+        blend_file=blend_file,
+        output_path=output_path,
+        parameters=parameters,
+        engine="EEVEE",
+        timeout=DEFAULT_TIMEOUT_EEVEE
+    )
+
+
+def render_procedural_scene_production(
+    blend_file: str, 
+    output_path: str, 
+    parameters: dict,
+    samples: int = 512
+):
+    """
+    Convenience function for production Cycles rendering.
+    Same as render_procedural_scene with engine='CYCLES' and higher samples.
+    """
+    return render_procedural_scene(
+        blend_file=blend_file,
+        output_path=output_path,
+        parameters=parameters,
+        samples=samples,
+        engine="CYCLES",
+        timeout=DEFAULT_TIMEOUT_CYCLES
+    )
+
+
+def analyze_blend(blend_file: str):
+    """
+    Analyzes a Blender file and returns available Value Nodes.
+    
+    :param blend_file: Absolute path to the .blend file.
+    :return: Dict with status and list of available parameters or error message.
+    """
+    # Validate blend file exists
+    if not os.path.exists(blend_file):
+        return {"status": "error", "message": f"Blend file not found: {blend_file}"}
+    
+    # Path to the analyze script
+    ANALYZE_SCRIPT_PATH = os.path.join(SCRIPTS_DIR, "analyze_blends.py")
+    
+    command = [
+        "blender",
+        "-b", blend_file,
+        "-P", ANALYZE_SCRIPT_PATH,
+        "--"
+    ]
+    
+    try:
+        result = subprocess.run(
+            command,
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=60  # 1 minute timeout for analysis
+        )
+        return {
+            "status": "success",
+            "parameters": result.stdout.strip(),
+            "blend_file": blend_file
+        }
+    except subprocess.TimeoutExpired:
+        return {"status": "error", "message": "Analysis timed out after 60 seconds"}
+    except subprocess.CalledProcessError as e:
+        return {"status": "error", "message": e.stderr}
+
 
 # Example usage for OpenClaw registration:
 # {

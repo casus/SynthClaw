@@ -17,6 +17,9 @@ env/
 # Assets
 assets/*
 !assets/.gitkeep
+!assets/test.blend
+output/*
+!output/.gitkeep  
 
 # macOS
 .DS_Store
