@@ -71,6 +71,11 @@ blender --version
 ### Scene Complexity Analysis
 Before rendering, the agent can run `analyze_blend`. This script parses the `.blend` file without launching GUI overhead. It examines poly-count, material configurations, lighting rigs, and rendering setups to produce a **Complexity & Realism Score**. This gives agents foresight on the visual quality they can generate.
 
+### Image Quality Metrics
+When generating outputs, the tool supports quantitative evaluation of the rendered image:
+- **Naturalness (GranatPy):** When `compute_metrics: true` is passed, the skill leverages `granatpy` to compute the naturalness factor of the generated image.
+- **Reference Image Similarity (LPIPS):** If an optional `reference_image` path (a real-world photo) is provided alongside `compute_metrics: true`, the skill dynamically compares the render against the real photo. It returns the Learned Perceptual Image Patch Similarity (LPIPS) score and the delta Naturalness Factor (dNf), measuring how close the synthetic image is to reality.
+
 ---
 
 ## ⚠️ Limitations & Safety
@@ -78,13 +83,6 @@ Before rendering, the agent can run `analyze_blend`. This script parses the `.bl
 * **Cycles Rendering:** This skill defaults to the Cycles engine. If running on a headless server without a GPU, the script is configured to fallback to CPU rendering to prevent driver crashes.
 * **Injection Safety:** The bridge uses `sys.argv` filtering. However, ensure the LLM is restricted from passing arbitrary string commands into the `parameters` dictionary.
 * **Version Lock:** This project uses `bpy` syntax specific to the **4.0+** mesh and node system. It is not backwards compatible with 2.7x or early 2.8x versions.
-
----
-
-## 📈 Future Enhancements
-
-* **Vision Feedback:** Integrate a Vision LLM to analyze the output render and "auto-correct" if the procedural result doesn't match the prompt's aesthetic.
-* **Animation Support:** Extend the skill to accept `start_frame` and `end_frame` for procedural motion sequences.
 
 ---
 
