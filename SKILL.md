@@ -1,7 +1,7 @@
 ---
 name: synthclaw
-version: 0.1.1
-license: CC BY-NC 4.0
+version: 0.1.2
+license: CC-BY-NC-4.0
 description: Render Blender files with agent-controlled procedural parameters for synthetic data generation. Use when generating training data with controlled variations, creating procedural image datasets, or automating Blender renders via natural language. Supports CYCLES (production) and EEVEE (fast testing) render engines.
 ---
 
