@@ -73,7 +73,7 @@ Before rendering, the agent can run `analyze_blend`. This script parses the `.bl
 
 ### Image Quality Metrics
 When generating outputs, the tool supports quantitative evaluation of the rendered image:
-- **Naturalness (GranatPy):** When `compute_metrics: true` is passed, the skill leverages `granatpy` to compute the naturalness factor of the generated image.
+- **Naturalness (GraNatPy):** When `compute_metrics: true` is passed, the skill leverages `granatpy` to compute the naturalness factor of the generated image.
 - **Reference Image Similarity (LPIPS):** If an optional `reference_image` path (a real-world photo) is provided alongside `compute_metrics: true`, the skill dynamically compares the render against the real photo. It returns the Learned Perceptual Image Patch Similarity (LPIPS) score and the delta Naturalness Factor (dNf), measuring how close the synthetic image is to reality.
 
 ---
