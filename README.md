@@ -11,6 +11,10 @@ The goal is to move away from manual "slider-pushing." Instead of opening Blende
 
 The agent identifies the correct **Value Nodes**, updates their defaults, and returns a rendered image for review.
 
+### Supported Render Engines
+- **CYCLES**: Production quality, photorealistic (slower, 30 min timeout)
+- **EEVEE**: Fast real-time rendering (testing, 1 min timeout)
+
 ---
 
 ## 📂 Project Structure
@@ -88,4 +92,4 @@ When generating outputs, the tool supports quantitative evaluation of the render
 
 ## 📝 License
 
-This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/) (CC BY-NC 4.0) - see the [LICENSE](LICENSE) file for details.
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.

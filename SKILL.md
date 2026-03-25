@@ -1,19 +1,9 @@
 ---
 name: synthclaw
-version: 0.1.2
-license: CC-BY-NC-4.0
+version: 0.1.3
+license: MIT
 description: Render Blender files with agent-controlled procedural parameters for synthetic data generation. Use when generating training data with controlled variations, creating procedural image datasets, or automating Blender renders via natural language. Supports CYCLES (production) and EEVEE (fast testing) render engines.
 ---
-
-# SynthClaw
-
-## Description
-
-Renders Blender files with agent-controlled procedural parameters. Enables synthetic data generation for deep learning by allowing LLMs to adjust material nodes (noise scale, roughness, displacement) and trigger renders via natural language prompts.
-
-Supports two render engines:
-- **CYCLES**: Production quality, photorealistic (slower, 30 min timeout)
-- **EEVEE**: Fast real-time rendering (testing, 1 min timeout)
 
 ## When to Use
 
