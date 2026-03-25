@@ -7,8 +7,12 @@ name = "synthclaw"
 version = "0.1.0"
 description = "OpenClaw agent skill to headlessly interact with Blender procedural nodes."
 readme = "README.md"
+license = { file = "LICENSE" }
 requires-python = ">=3.9"
-dependencies = []
+dependencies = [
+    "granatpy",
+    "lpips"
+]
 
 [tool.setuptools.packages.find]
 where = ["src"]

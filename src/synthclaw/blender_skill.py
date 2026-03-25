@@ -17,7 +17,9 @@ def render_procedural_scene(
     parameters: dict, 
     samples: int = 128,
     engine: str = "CYCLES",
-    timeout: int = None
+    timeout: int = None,
+    reference_image: str = None,
+    compute_metrics: bool = False
 ):
     """
     OpenClaw Skill: Executes Blender in background mode to render a procedural scene.
@@ -84,12 +86,67 @@ def render_procedural_scene(
             timeout=timeout,
             env=env
         )
+        metrics = {}
+        if compute_metrics:
+            try:
+                import numpy as np
+                from PIL import Image
+                test_img = Image.open(output_path).convert('RGB')
+                img_np = np.array(test_img)
+                
+                # GranatPy Metrics
+                try:
+                    import granatpy
+                    # Single Image Naturalness
+                    _, nfs, _, _, _ = granatpy.naturalize_rgb_image(img_np)
+                    metrics["naturalness_channels"] = [float(x) for x in nfs]
+                    metrics["naturalness_mean"] = float(np.mean(nfs))
+                    
+                    # Comparative Metrics
+                    if reference_image and os.path.exists(reference_image):
+                        ref_img = Image.open(reference_image).convert('RGB')
+                        ref_np = np.array(ref_img)
+                        comp_metrics = granatpy.compute_all_metrics(ref_np, img_np, verbose=False)
+                        for k, v in comp_metrics.items():
+                            metrics[f"granatpy_{k}"] = float(v)
+                except ImportError:
+                    metrics["granatpy_status"] = "granatpy not installed"
+                except Exception as e:
+                    metrics["granatpy_error"] = str(e)
+                
+                # LPIPS Metric
+                if reference_image and os.path.exists(reference_image):
+                    try:
+                        import torch
+                        import torchvision.transforms.functional as TF
+                        import lpips
+                        
+                        ref_img = Image.open(reference_image).convert('RGB')
+                        img_t = TF.to_tensor(test_img) * 2 - 1
+                        ref_t = TF.to_tensor(ref_img) * 2 - 1
+                        
+                        img_t = img_t.unsqueeze(0)
+                        ref_t = ref_t.unsqueeze(0)
+                        
+                        # Using alexnet as default
+                        loss_fn_alex = lpips.LPIPS(net='alex', verbose=False)
+                        lpips_val = loss_fn_alex(img_t, ref_t)
+                        metrics["lpips_alex"] = float(lpips_val.item())
+                    except ImportError:
+                        metrics["lpips_status"] = "lpips not installed"
+                    except Exception as e:
+                        metrics["lpips_error"] = str(e)
+                        
+            except Exception as e:
+                metrics["error"] = str(e)
+
         return {
             "status": "success", 
             "output": output_path, 
             "log": result.stdout[-500:],
             "engine": engine,
-            "samples": samples if engine == "CYCLES" else None
+            "samples": samples if engine == "CYCLES" else None,
+            "metrics": metrics
         }
     except subprocess.TimeoutExpired:
         return {"status": "error", "message": f"Render timed out after {timeout} seconds"}
@@ -100,7 +157,9 @@ def render_procedural_scene(
 def render_procedural_scene_fast(
     blend_file: str, 
     output_path: str, 
-    parameters: dict
+    parameters: dict,
+    reference_image: str = None,
+    compute_metrics: bool = False
 ):
     """
     Convenience function for fast EEVEE rendering (testing).
@@ -111,7 +170,9 @@ def render_procedural_scene_fast(
         output_path=output_path,
         parameters=parameters,
         engine="EEVEE",
-        timeout=DEFAULT_TIMEOUT_EEVEE
+        timeout=DEFAULT_TIMEOUT_EEVEE,
+        reference_image=reference_image,
+        compute_metrics=compute_metrics
     )
 
 
@@ -119,7 +180,9 @@ def render_procedural_scene_production(
     blend_file: str, 
     output_path: str, 
     parameters: dict,
-    samples: int = 512
+    samples: int = 512,
+    reference_image: str = None,
+    compute_metrics: bool = False
 ):
     """
     Convenience function for production Cycles rendering.
@@ -131,7 +194,9 @@ def render_procedural_scene_production(
         parameters=parameters,
         samples=samples,
         engine="CYCLES",
-        timeout=DEFAULT_TIMEOUT_CYCLES
+        timeout=DEFAULT_TIMEOUT_CYCLES,
+        reference_image=reference_image,
+        compute_metrics=compute_metrics
     )
 
 

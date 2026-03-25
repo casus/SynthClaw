@@ -87,3 +87,7 @@ Before rendering, the agent can run `analyze_blend`. This script parses the `.bl
 * **Animation Support:** Extend the skill to accept `start_frame` and `end_frame` for procedural motion sequences.
 
 ---
+
+## 📝 License
+
+This project is licensed under the [Creative Commons Attribution-NonCommercial 4.0 International License](https://creativecommons.org/licenses/by-nc/4.0/) (CC BY-NC 4.0) - see the [LICENSE](LICENSE) file for details.

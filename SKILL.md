@@ -53,9 +53,11 @@ Adjusts procedural Value Nodes and renders a frame in Blender.
 - `samples` (integer, optional): Cycles samples (default: 128). Ignored for EEVEE.
 - `engine` (string, optional): Render engine - `"CYCLES"` (default) or `"EEVEE"`
 - `timeout` (integer, optional): Custom timeout in seconds. Defaults: 1800 for CYCLES, 60 for EEVEE.
+- `reference_image` (string, optional): Complete path to a real-world reference image. Used for computing LPIPS similarity and Naturalness Delta.
+- `compute_metrics` (boolean, optional): Set to `true` to compute Naturalness/LPIPS metrics after rendering. Default `false`.
 
 **Returns:**
-- On success: `{"status": "success", "output": "/path/to/output.png", "log": "...", "engine": "CYCLES", "samples": 128}`
+- On success: `{"status": "success", "output": "/path/to/output.png", "log": "...", "engine": "CYCLES", "samples": 128, "metrics": {"naturalness_mean": 0.85, "lpips_alex": 0.12}}`
 - On error: `{"status": "error", "message": "..."}`
 
 **Examples:**

@@ -18,6 +18,14 @@
         "additionalProperties": {
           "type": "number"
         }
+      },
+      "reference_image": {
+        "type": "string",
+        "description": "Optional complete path to a real-world reference image for LPIPS and Naturalness Delta computation."
+      },
+      "compute_metrics": {
+        "type": "boolean",
+        "description": "Optional flag to compute and return image quality metrics. Default is false."
       }
     },
     "required": [
