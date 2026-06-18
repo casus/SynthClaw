@@ -1,7 +1,8 @@
 ---
 name: synthclaw
-version: 0.1.3
 license: MIT
+metadata:
+  version: 0.1.3
 description: Render Blender files with agent-controlled procedural parameters for synthetic data generation. Use when generating training data with controlled variations, creating procedural image datasets, or automating Blender renders via natural language. Supports CYCLES (production) and EEVEE (fast testing) render engines.
 ---
 
@@ -133,8 +134,8 @@ Analyzes a .blend file and returns available Value Nodes that can be manipulated
 | `src/synthclaw/blender_skill.py` | OpenClaw execution wrapper with engine selection |
 | `scripts/agent_bridge.py` | Blender-side Python script (handles both engines) |
 | `scripts/analyze_blends.py` | Blender-side analysis script |
-| `config/render_schema.json` | Tool schema for LLM function calling |
-| `config/analyze_schema.json` | Schema for blend file analysis |
+| `assets/config/render_schema.json` | Tool schema for LLM function calling |
+| `assets/config/analyze_schema.json` | Schema for blend file analysis |
 
 ## Example Workflow
 

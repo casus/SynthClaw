@@ -23,7 +23,7 @@ This repository is designed as an installable Python package for OpenClaw agents
 
 * `src/synthclaw/`: Contains the OpenClaw execution wrappers (`blender_skill.py`, `analyze_skill.py`) that trigger background system processes.
 * `scripts/`: Internal Blender execution code (`agent_bridge.py`, `analyze_blends.py`). These are loaded directly into Blender by the wrappers.
-* `config/`: JSON tool schemas provided to your LLM agent (`render_schema.json`, `analyze_schema.json`).
+* `assets/config/`: JSON tool schemas provided to your LLM agent (`render_schema.json`, `analyze_schema.json`).
 * `assets/`: Contains `low.blend` and `high.blend` required for testing agent configurations.
 * `tests/`: Automated unit tests for validating Blender environment setup and output.
 * `pyproject.toml`: Local package definition.
