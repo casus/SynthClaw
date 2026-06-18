@@ -3,7 +3,7 @@ name: synthclaw
 license: MIT
 metadata:
   version: 0.1.3
-description: Render Blender files with agent-controlled procedural parameters for synthetic data generation. Use when generating training data with controlled variations, creating procedural image datasets, or automating Blender renders via natural language. Supports CYCLES (production) and EEVEE (fast testing) render engines.
+description: Render Blender files with agent-controlled procedural parameters for synthetic data generation. A key capability of this skill is returning dynamic quality metrics (Naturalness and LPIPS) upon generation, allowing agents to be guided by the metric results to iteratively optimize parameter ranges. Supports CYCLES (production) and EEVEE (fast testing) render engines.
 ---
 
 ## When to Use
@@ -137,13 +137,15 @@ Analyzes a .blend file and returns available Value Nodes that can be manipulated
 | `assets/config/render_schema.json` | Tool schema for LLM function calling |
 | `assets/config/analyze_schema.json` | Schema for blend file analysis |
 
-## Example Workflow
+## Example Workflow (Metric-Guided Optimization)
 
-1. User: "Render with grain scale increased and surface rougher"
-2. Agent calls `analyze_blend` to see available parameters
-3. Agent calls `render_procedural_scene_fast` (EEVEE) for quick preview
-4. If preview looks good, agent calls `render_procedural_scene_production` (CYCLES) for final output
-5. Render completes, path returned to user
+1. User: "Render a realistic surface texture matching this real-world reference image"
+2. Agent calls `analyze_blend` to see available parameters.
+3. Agent renders a fast test image passing `compute_metrics=true` and a `reference_image` path.
+4. Agent receives feedback metrics (e.g. `lpips_alex` similarity score and `naturalness_mean`).
+5. Guided by these metric results, the agent iteratively adjusts parameters (e.g., grain scale, roughness) to optimize realism.
+6. The agent performs a few iterations of this optimization loop until the metric values reach the desired threshold.
+7. Agent calls `render_procedural_scene_production` (CYCLES) to render the final optimized output.
 
 ## Version
 
