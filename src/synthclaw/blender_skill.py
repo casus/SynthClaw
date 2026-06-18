@@ -86,6 +86,17 @@ def render_procedural_scene(
             timeout=timeout,
             env=env
         )
+        
+        # Check if output_path exists, otherwise find and rename the file Blender actually wrote
+        if not os.path.exists(output_path):
+            base, ext = os.path.splitext(output_path)
+            possible_path_1 = f"{base}{ext}0001{ext}"
+            possible_path_2 = f"{base}0001{ext}"
+            if os.path.exists(possible_path_1):
+                os.rename(possible_path_1, output_path)
+            elif os.path.exists(possible_path_2):
+                os.rename(possible_path_2, output_path)
+
         metrics = {}
         if compute_metrics:
             try:
