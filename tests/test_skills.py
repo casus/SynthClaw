@@ -1,7 +1,7 @@
 import os
 import json
 import shutil
-from synthclaw import analyze_blend, render_procedural_scene_fast
+from synthclaw import analyze_blend, render_procedural_scene_fast, analyze_dataset
 
 def test_blender_skill():
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -114,7 +114,33 @@ def test_generate_dataset():
             assert "image_file" in data
             assert target_param in data["parameters"]
 
+def test_analyze_dataset():
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    dataset_dir = os.path.join(repo_root, "output", "dataset")
+    images_dir = os.path.join(dataset_dir, "images")
+    
+    if not os.path.exists(images_dir):
+        print("ERROR: Dataset images not found. Skipping test_analyze_dataset.")
+        return
+        
+    image_files = [os.path.join(images_dir, f) for f in os.listdir(images_dir) if f.endswith(".png")]
+    if not image_files:
+        print("ERROR: No images found. Skipping test_analyze_dataset.")
+        return
+        
+    print("\n--- Testing Dataset Analysis (Diversity & Naturalness) ---")
+    res = analyze_dataset(image_files)
+    print("Analysis Result:", json.dumps(res, indent=2))
+    
+    assert res["status"] == "success"
+    assert "diversity" in res
+    assert "naturalness_mean" in res
+    assert isinstance(res["diversity"], float)
+    assert isinstance(res["naturalness_mean"], float)
+    assert len(res["individual_metrics"]) == len(image_files)
+
 if __name__ == "__main__":
     test_blender_skill()
     test_render_procedural_scene()
     test_generate_dataset()
+    test_analyze_dataset()

@@ -2,8 +2,8 @@
 name: synthclaw
 license: MIT
 metadata:
-  version: 0.1.3
-description: Render Blender files with agent-controlled procedural parameters for synthetic data generation. A key capability of this skill is returning dynamic quality metrics (Naturalness and LPIPS) upon generation, allowing agents to be guided by the metric results to iteratively optimize parameter ranges. Supports CYCLES (production) and EEVEE (fast testing) render engines.
+  version: 0.1.4
+description: Render Blender files with agent-controlled procedural parameters for synthetic data generation. A key capability of this skill is returning dynamic quality metrics (Naturalness and LPIPS) upon generation and measuring dataset-wide diversity (Shannon entropy), allowing agents to be guided by the metric results to iteratively optimize parameter ranges and improve synthetic data usefulness. Supports CYCLES (production) and EEVEE (fast testing) render engines.
 ---
 
 ## When to Use
@@ -109,6 +109,15 @@ Analyzes a .blend file and returns available Value Nodes that can be manipulated
 
 **Returns:** Dict containing `status`, a `complexity` object evaluating scene realism, and `value_nodes` (available parameter names with current values).
 
+### analyze_dataset
+
+Computes dataset-wide diversity (Shannon entropy) and average Naturalness across a list of generated images. Together with Naturalness, Diversity allows iterative improvement of the synthetic data's usefulness.
+
+**Parameters:**
+- `image_paths` (array of strings, required): List of absolute paths to images in the dataset
+
+**Returns:** Dict containing `status`, `diversity` (overall Shannon entropy across all images), `naturalness_mean` (average naturalness factor), and `individual_metrics` (per-image naturalness details).
+
 ## Engine Comparison
 
 | Feature | CYCLES | EEVEE |
@@ -132,10 +141,12 @@ Analyzes a .blend file and returns available Value Nodes that can be manipulated
 | File | Purpose |
 |------|---------|
 | `src/synthclaw/blender_skill.py` | OpenClaw execution wrapper with engine selection |
+| `src/synthclaw/analyze_skill.py` | Dataset metrics and file analysis wrapper |
 | `scripts/agent_bridge.py` | Blender-side Python script (handles both engines) |
 | `scripts/analyze_blends.py` | Blender-side analysis script |
 | `assets/config/render_schema.json` | Tool schema for LLM function calling |
 | `assets/config/analyze_schema.json` | Schema for blend file analysis |
+| `assets/config/dataset_analysis_schema.json` | Schema for dataset diversity and naturalness analysis |
 
 ## Example Workflow (Metric-Guided Optimization)
 
