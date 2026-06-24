@@ -63,6 +63,7 @@ def render_procedural_scene(
     
     # Pass engine and samples to the Blender script via environment variables
     env = os.environ.copy()
+    env["SYNTHCLAW_PACKAGE_PATH"] = os.path.abspath(os.path.join(MODULE_DIR, ".."))
     env["BLENDER_ENGINE"] = engine
     env["BLENDER_SAMPLES"] = str(samples)
     
@@ -260,9 +261,108 @@ def analyze_blend(blend_file: str):
         return {"status": "error", "message": e.stderr}
 
 
+def render_procedural_dataset(
+    blend_file: str,
+    output_dir: str,
+    num_images: int = 2,
+    randomizations: list = None,
+    engine: str = "CYCLES",
+    samples: int = 128,
+    timeout: int = None
+):
+    """
+    OpenClaw Skill: Generates a procedural dataset from any .blend file by executing
+    frame-by-frame sweeps with dynamic randomization rules.
+    
+    :param blend_file: Absolute path to the .blend file.
+    :param output_dir: Absolute path to save the dataset.
+    :param num_images: Number of images to render (default: 2).
+    :param randomizations: List of randomization rules.
+    :param engine: Render engine - "CYCLES" or "EEVEE".
+    :param samples: Cycles samples per frame (default: 128).
+    :param timeout: Custom timeout in seconds.
+    :return: Dict with status and output path details.
+    """
+    engine = engine.upper()
+    if engine not in ["CYCLES", "EEVEE"]:
+        return {"status": "error", "message": f"Invalid engine '{engine}'. Use 'CYCLES' or 'EEVEE'"}
+        
+    # Validate blend file exists
+    if not os.path.exists(blend_file):
+        return {"status": "error", "message": f"Blend file not found: {blend_file}"}
+
+    # Set default timeout based on engine and count
+    if timeout is None:
+        base_timeout = DEFAULT_TIMEOUT_CYCLES if engine == "CYCLES" else DEFAULT_TIMEOUT_EEVEE
+        timeout = base_timeout * num_images
+
+    # Validate output directory
+    output_dir = os.path.abspath(output_dir)
+    try:
+        os.makedirs(output_dir, exist_ok=True)
+    except OSError as e:
+        return {"status": "error", "message": f"Cannot create output directory: {e}"}
+
+    # Generate config data and write to a temporary file
+    config_data = {
+        "output_dir": output_dir,
+        "num_images": num_images,
+        "randomizations": randomizations or []
+    }
+    
+    import tempfile
+    config_fd, config_path = tempfile.mkstemp(suffix=".json", dir=output_dir)
+    try:
+        with os.fdopen(config_fd, 'w') as f:
+            json.dump(config_data, f, indent=2)
+            
+        script_path = os.path.join(SCRIPTS_DIR, "render_dataset.py")
+        
+        # Pass engine and samples to the Blender script via environment variables
+        env = os.environ.copy()
+        env["SYNTHCLAW_PACKAGE_PATH"] = os.path.abspath(os.path.join(MODULE_DIR, ".."))
+        env["BLENDER_ENGINE"] = engine
+        env["BLENDER_SAMPLES"] = str(samples)
+        
+        command = [
+            "blender", 
+            "-b", blend_file, 
+            "-P", script_path, 
+            "--",
+            config_path
+        ]
+        
+        result = subprocess.run(
+            command, 
+            capture_output=True, 
+            text=True, 
+            check=True,
+            timeout=timeout,
+            env=env
+        )
+        
+        return {
+            "status": "success",
+            "output_dir": output_dir,
+            "images_generated": num_images,
+            "log": result.stdout[-500:]
+        }
+    except subprocess.TimeoutExpired:
+        return {"status": "error", "message": f"Render dataset timed out after {timeout} seconds"}
+    except subprocess.CalledProcessError as e:
+        return {"status": "error", "message": e.stderr or e.stdout}
+    finally:
+        if os.path.exists(config_path):
+            try:
+                os.remove(config_path)
+            except Exception:
+                pass
+
+
 # Example usage for OpenClaw registration:
 # {
 #   "name": "render_procedural_scene",
 #   "description": "Adjusts procedural nodes and renders a frame in Blender 4.0+",
 #   "parameters": { ... }
 # }
+

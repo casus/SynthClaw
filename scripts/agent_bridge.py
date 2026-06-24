@@ -2,37 +2,12 @@ import bpy
 import sys
 import os
 
+# Dynamically add synthclaw package path to Blender's Python sys.path
+package_path = os.environ.get("SYNTHCLAW_PACKAGE_PATH")
+if package_path and package_path not in sys.path:
+    sys.path.append(package_path)
 
-def set_render_engine():
-    """
-    Set render engine BEFORE any rendering happens.
-    Must be called before the render operation.
-    """
-    engine = os.environ.get("BLENDER_ENGINE", "CYCLES").upper()
-    samples = int(os.environ.get("BLENDER_SAMPLES", "128"))
-    
-    if engine in ["EEVEE", "BLENDER_EEVEE"]:
-        # Use EEVEE for fast testing
-        bpy.context.scene.render.engine = 'BLENDER_EEVEE'
-        print(f"[SynthClaw] Using EEVEE engine (fast mode)")
-    else:
-        # Use Cycles for production quality
-        bpy.context.scene.render.engine = 'CYCLES'
-        bpy.context.scene.cycles.samples = samples
-        print(f"[SynthClaw] Using CYCLES engine with {samples} samples (production mode)")
-        
-        # CPU fallback for headless/server environments without GPU
-        try:
-            if bpy.context.scene.cycles.device not in ['CPU', 'GPU']:
-                bpy.context.scene.cycles.device = 'CPU'
-                print("[SynthClaw] Cycles device set to CPU (fallback)")
-            else:
-                print(f"[SynthClaw] Cycles device: {bpy.context.scene.cycles.device}")
-        except Exception as e:
-            print(f"[SynthClaw] Could not set Cycles device: {e}")
-            bpy.context.scene.cycles.device = 'CPU'
-            print("[SynthClaw] Falling back to CPU rendering")
-
+from synthclaw.blender.device import configure_render_engine
 
 def update_value_nodes(params):
     """
@@ -86,7 +61,7 @@ def main():
                 continue
     
     # STEP 1: Set render engine FIRST (before any modifications)
-    set_render_engine()
+    configure_render_engine()
     
     # STEP 2: Update Value Nodes
     updated_nodes = update_value_nodes(params)

@@ -1,7 +1,12 @@
 import os
 import json
 import shutil
-from synthclaw import analyze_blend, render_procedural_scene_fast, analyze_dataset
+from synthclaw import (
+    analyze_blend,
+    render_procedural_scene_fast,
+    analyze_dataset,
+    render_procedural_dataset
+)
 
 def test_blender_skill():
     repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
@@ -139,8 +144,56 @@ def test_analyze_dataset():
     assert isinstance(res["naturalness_mean"], float)
     assert len(res["individual_metrics"]) == len(image_files)
 
+def test_render_procedural_dataset():
+    repo_root = os.path.abspath(os.path.join(os.path.dirname(__file__), ".."))
+    test_blend = os.path.join(repo_root, "assets", "test.blend")
+    output_dir = os.path.join(repo_root, "output", "procedural_dataset")
+    
+    if os.path.exists(output_dir):
+        shutil.rmtree(output_dir)
+        
+    if not os.path.exists(test_blend):
+        print("ERROR: Could not find test.blend. Skipping render dataset test.")
+        return
+
+    # Analyze blend to find material of AgentControl
+    analysis = analyze_blend(test_blend)
+    assert analysis["status"] == "success"
+    value_nodes = analysis["parameters"]["value_nodes"]
+    assert "AgentControl" in value_nodes
+    mat_name = value_nodes["AgentControl"]["material"]
+
+    print("\n--- Testing Generic Procedural Dataset Rendering ---")
+    randomizations = [
+        {
+            "type": "value_node",
+            "target": mat_name,
+            "sub_target": "AgentControl",
+            "distribution": "uniform",
+            "range": [0.1, 0.9]
+        }
+    ]
+    
+    res = render_procedural_dataset(
+        blend_file=test_blend,
+        output_dir=output_dir,
+        num_images=3,
+        randomizations=randomizations,
+        engine="EEVEE"
+    )
+    print("Render Dataset Result:", json.dumps(res, indent=2))
+    assert res["status"] == "success"
+    assert os.path.exists(output_dir)
+    
+    files = os.listdir(output_dir)
+    rendered_images = [f for f in files if f.endswith(".png")]
+    print("Generated files:", rendered_images)
+    assert len(rendered_images) == 3
+
 if __name__ == "__main__":
     test_blender_skill()
     test_render_procedural_scene()
     test_generate_dataset()
     test_analyze_dataset()
+    test_render_procedural_dataset()
+

@@ -100,6 +100,18 @@ Convenience function for production Cycles rendering. Same as `render_procedural
 - `output_path` (string, required): Where to save the rendered image
 - `samples` (integer, optional): Cycles samples (default: 512)
 
+### render_procedural_dataset
+
+Generates a procedural dataset from any `.blend` file by applying dynamic randomization rules frame-by-frame and routing compositor file outputs automatically.
+
+**Parameters:**
+- `blend_file` (string, required): Absolute path to the .blend file
+- `output_dir` (string, required): Absolute path where generated images/masks will be saved
+- `num_images` (integer, optional): Number of images to render (default: 2)
+- `randomizations` (array of objects, optional): List of randomization rules specifying target elements and distribution parameters
+- `engine` (string, optional): `"CYCLES"` (default) or `"EEVEE"`
+- `samples` (integer, optional): Cycles samples per frame (default: 128)
+
 ### analyze_blend
 
 Analyzes a .blend file and returns available Value Nodes that can be manipulated.
@@ -143,8 +155,10 @@ Computes dataset-wide diversity (Shannon entropy) and average Naturalness across
 | `src/synthclaw/blender_skill.py` | OpenClaw execution wrapper with engine selection |
 | `src/synthclaw/analyze_skill.py` | Dataset metrics and file analysis wrapper |
 | `scripts/agent_bridge.py` | Blender-side Python script (handles both engines) |
+| `scripts/render_dataset.py` | Blender-side script for generic procedural dataset rendering |
 | `scripts/analyze_blends.py` | Blender-side analysis script |
 | `assets/config/render_schema.json` | Tool schema for LLM function calling |
+| `assets/config/render_dataset_schema.json` | Tool schema for procedural dataset rendering function calling |
 | `assets/config/analyze_schema.json` | Schema for blend file analysis |
 | `assets/config/dataset_analysis_schema.json` | Schema for dataset diversity and naturalness analysis |
 
