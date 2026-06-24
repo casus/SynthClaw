@@ -21,9 +21,9 @@ description: Render Blender files with agent-controlled procedural parameters fo
 
 ## Requirements
 
-- Blender 4.0+ installed and available in `$PATH`
+- Blender 4.0+ / 5.0+ installed and available in `$PATH` (fully compatible with Blender 5.0+ compositor APIs)
 - Python 3.10+ for the synthclaw package
-- Cycles or EEVEE render engine (auto-selected)
+- Cycles or EEVEE render engine (auto-selected, Cycles utilizes GPU acceleration natively via Metal on macOS and CUDA elsewhere)
 
 ## Configuration
 
@@ -145,7 +145,7 @@ Computes dataset-wide diversity (Shannon entropy) and average Naturalness across
 - **Headless execution:** Blender runs with `-b` flag for security
 - **Parameter validation:** Only float values accepted; non-numeric input is rejected
 - **No shell injection:** Uses `subprocess.run(shell=False)` with `--` separator
-- **CPU fallback:** Automatically uses CPU rendering for Cycles if no GPU available
+- **GPU Acceleration:** Automatically configures Metal (Apple Silicon) or CUDA/OptiX GPU rendering for Cycles, fallback to CPU is automatic if no compatible GPU is active
 - **Timeout protection:** Long renders are killed after timeout to prevent hanging
 
 ## Files

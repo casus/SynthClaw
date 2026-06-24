@@ -14,7 +14,7 @@ The goal is to move away from manual "slider-pushing." Instead of opening Blende
 The agent identifies the correct **Value Nodes**, updates their defaults, and returns a rendered image for review.
 
 ### Supported Render Engines
-- **CYCLES**: Production quality, photorealistic (slower, 30 min timeout)
+- **CYCLES**: Production quality, photorealistic (natively supports GPU acceleration via Metal on macOS Apple Silicon and CUDA/OptiX on other platforms, 30 min timeout)
 - **EEVEE**: Fast real-time rendering (testing, 1 min timeout)
 
 ---
@@ -95,9 +95,9 @@ By obtaining these metrics, the agent does not render blindly. It can:
 
 ## ⚠️ Limitations & Safety
 
-* **Cycles Rendering:** This skill defaults to the Cycles engine. If running on a headless server without a GPU, the script is configured to fallback to CPU rendering to prevent driver crashes.
+* **Cycles Rendering:** This skill defaults to the Cycles engine. The script is configured to automatically enable Metal GPU acceleration on macOS (for M1/M2/M3 Apple Silicon) and CUDA/OptiX on Linux and Windows. If no compatible GPU devices are found, it falls back to CPU rendering automatically.
 * **Injection Safety:** The bridge uses `sys.argv` filtering. However, ensure the LLM is restricted from passing arbitrary string commands into the `parameters` dictionary.
-* **Version Lock:** This project uses `bpy` syntax specific to the **4.0+** mesh and node system. It is not backwards compatible with 2.7x or early 2.8x versions.
+* **Version Support:** This project is compatible with Blender **4.0+ and 5.0+**. It dynamically handles breaking compositor changes introduced in Blender 5.0+ (such as mapping `directory` and `file_output_items`). It is not backwards compatible with 2.7x or early 2.8x versions.
 
 ---
 
