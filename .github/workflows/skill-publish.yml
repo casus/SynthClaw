@@ -15,3 +15,5 @@ jobs:
       skill_path: .
       owner: casus
       dry_run: false
+    secrets:
+      clawhub_token: ${{ secrets.CLAWHUB_TOKEN }}
