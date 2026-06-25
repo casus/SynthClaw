@@ -31,11 +31,5 @@ jobs:
           fi
           clawhub login --token "$CLAWHUB_TOKEN" --no-browser
           
-          if [[ "${{ github.event_name }}" == "release" ]]; then
-            echo "Event is a release - publishing skill..."
-            tag_name="${{ github.ref_name }}"
-            version="${tag_name#v}"
-            clawhub publish . --slug @casus/synthclaw --version "$version"
-          else
-            echo "Event is ${{ github.event_name }} - ran test validation successfully (skipped publishing)."
-          fi
+          echo "Publishing skill..."
+          clawhub publish . --slug synthclaw
