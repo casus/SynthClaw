@@ -2,7 +2,7 @@
 name: synthclaw
 license: MIT
 metadata:
-  version: 0.1.4
+  version: 0.2.0
 description: Render Blender files with agent-controlled procedural parameters for synthetic data generation. A key capability of this skill is returning dynamic quality metrics (Naturalness and LPIPS) upon generation and measuring dataset-wide diversity (Shannon entropy), allowing agents to be guided by the metric results to iteratively optimize parameter ranges and improve synthetic data usefulness. Supports CYCLES (production) and EEVEE (fast testing) render engines.
 ---
 
@@ -119,7 +119,15 @@ Analyzes a .blend file and returns available Value Nodes that can be manipulated
 **Parameters:**
 - `blend_file` (string, required): Absolute path to the .blend file
 
-**Returns:** Dict containing `status`, a `complexity` object evaluating scene realism, and `value_nodes` (available parameter names with current values).
+**Returns:** Dict containing:
+- `status` (string): `"success"` or `"error"`
+- `parameters` (object): Contains:
+  - `complexity` (object): Scene realism evaluation (rating, score, polygon/light counts)
+  - `value_nodes` (object): Available parameter node names, current values, and their assigned materials/node groups
+  - `collections` (object): Hierarchical tree of scene collections and their direct object memberships
+  - `objects` (object): Detailed dictionary of scene objects (type, location, rotation, scale, visibility in render, and assigned materials)
+  - `materials` (object): Detailed dictionary of materials (use_nodes status, user count)
+- `blend_file` (string): Path to the analyzed file
 
 ### analyze_dataset
 

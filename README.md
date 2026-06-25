@@ -74,8 +74,14 @@ blender --version
 4. **Modification:** `agent_bridge.py` iterates through all materials, finds the node named `DisplacementStrength`, and updates it.
 5. **Output:** A `.png` is rendered and the path is returned to the user.
 
-### Scene Complexity Analysis
-Before rendering, the agent can run `analyze_blend`. This script parses the `.blend` file without launching GUI overhead. It examines poly-count, material configurations, lighting rigs, and rendering setups to produce a **Complexity & Realism Score**. This gives agents foresight on the visual quality they can generate.
+### Scene Analysis and Complexity
+Before rendering, the agent can run `analyze_blend`. This script parses the `.blend` file without launching GUI overhead. It produces a **Complexity & Realism Score** by examining geometry, node counts, lighting, and render engines. Crucially, it also extracts a structured breakdown of the scene:
+* **Scene Collections**: A hierarchical tree representation of all collections and their directly nested objects.
+* **Objects**: A detailed breakdown of all scene objects, including type (e.g., mesh, camera, light), spatial location, rotation, scale, render visibility, and assigned materials.
+* **Materials**: A list of all scene materials, showing if they use nodes and their active user/reference count.
+* **Value Nodes**: Discovers all shader node default values available for procedural manipulation.
+
+This gives agents complete foresight on both the scene structure and parameter options before invoking render sweeps.
 
 ### Image Quality Metrics & Feedback Loop
 When generating outputs, the tool supports quantitative evaluation of the rendered image. **Obtaining these metric values is key to the skill, as it provides a closed-loop feedback mechanism that guides the agent's parameter search:**

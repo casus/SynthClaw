@@ -2,6 +2,17 @@ import bpy
 import json
 
 
+def get_collections_hierarchy(collection):
+    """
+    Recursively list collections and the names of objects inside them.
+    """
+    return {
+        "name": collection.name,
+        "objects": [obj.name for obj in collection.objects],
+        "children": [get_collections_hierarchy(child) for child in collection.children]
+    }
+
+
 def assess_complexity():
     # 1. Geometry Complexity
     total_polygons = sum([len(m.polygons) for m in bpy.data.meshes])
@@ -85,10 +96,47 @@ def main():
                         }
     except Exception:
         pass
+
+    # Extract Collections Hierarchy
+    collections_info = {}
+    try:
+        if bpy.context.scene.collection:
+            collections_info = get_collections_hierarchy(bpy.context.scene.collection)
+    except Exception as e:
+        collections_info = {"error": str(e)}
+
+    # Extract Scene Objects
+    objects_info = {}
+    try:
+        for obj in bpy.context.scene.objects:
+            objects_info[obj.name] = {
+                "type": obj.type,
+                "location": [round(x, 4) for x in obj.location],
+                "rotation": [round(x, 4) for x in obj.rotation_euler],
+                "scale": [round(x, 4) for x in obj.scale],
+                "hide_render": obj.hide_render,
+                "materials": [slot.material.name for slot in obj.material_slots if slot.material] if hasattr(obj, "material_slots") else []
+            }
+    except Exception as e:
+        objects_info = {"error": str(e)}
+
+    # Extract Scene Materials
+    materials_info = {}
+    try:
+        for mat in bpy.data.materials:
+            materials_info[mat.name] = {
+                "use_nodes": mat.use_nodes,
+                "users": mat.users
+            }
+    except Exception as e:
+        materials_info = {"error": str(e)}
     
     output_data = {
         "complexity": assess_complexity(),
-        "value_nodes": value_nodes
+        "value_nodes": value_nodes,
+        "collections": collections_info,
+        "objects": objects_info,
+        "materials": materials_info
     }
     
     # Output as JSON for easy parsing between markers
