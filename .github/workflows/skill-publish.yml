@@ -32,4 +32,12 @@ jobs:
           clawhub login --token "$CLAWHUB_TOKEN" --no-browser
           
           echo "Publishing skill..."
-          clawhub publish . --slug synthclaw
+          version=$(python3 -c "
+          with open('SKILL.md') as f:
+              for line in f:
+                  if 'version:' in line:
+                      print(line.split('version:')[-1].strip())
+                      break
+          ")
+          echo "Extracted version: $version"
+          clawhub publish . --slug synthclaw --version "$version"
