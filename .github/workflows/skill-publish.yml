@@ -7,13 +7,26 @@ on:
 
 jobs:
   publish:
-    permissions:
-      id-token: write
-      contents: read
-    uses: openclaw/clawhub/.github/workflows/skill-publish.yml@main
-    with:
-      skill_path: .
-      owner: casus
-      dry_run: false
-    secrets:
-      clawhub_token: ${{ secrets.CLAWHUB_TOKEN }}
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install ClawHub CLI
+        run: npm install -g clawhub
+
+      - name: Login and Publish
+        env:
+          CLAWHUB_TOKEN: ${{ secrets.CLAWHUB_TOKEN }}
+        run: |
+          if [[ -z "$CLAWHUB_TOKEN" ]]; then
+            echo "::error::CLAWHUB_TOKEN secret is missing."
+            exit 1
+          fi
+          clawhub login --token "$CLAWHUB_TOKEN" --no-browser
+          clawhub publish . --slug @casus/synthclaw
