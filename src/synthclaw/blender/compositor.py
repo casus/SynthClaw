@@ -10,7 +10,35 @@ def configure_compositor_outputs(scene, output_dir, frame_idx):
     if scene.use_nodes and scene.compositing_node_group:
         for node in scene.compositing_node_group.nodes:
             if node.type == 'OUTPUT_FILE':
-                subfolder = node.name.replace(" ", "_").lower()
+                orig_dir = getattr(node, "directory", getattr(node, "base_path", ""))
+                norm_orig = os.path.normpath(orig_dir)
+                norm_output = os.path.normpath(output_dir)
+                
+                if norm_orig.startswith(norm_output):
+                    subfolder = os.path.relpath(norm_orig, norm_output)
+                else:
+                    try:
+                        blend_dir = bpy.path.abspath("//")
+                        abs_orig_dir = bpy.path.abspath(orig_dir)
+                        rel_path = os.path.relpath(abs_orig_dir, blend_dir)
+                        
+                        # If the path goes through an output directory, strip the parent/output prefix
+                        if "output/" in rel_path:
+                            rel_path = rel_path.split("output/", 1)[1]
+                        elif "output\\" in rel_path:
+                            rel_path = rel_path.split("output\\", 1)[1]
+                        elif rel_path.startswith(".."):
+                            # Fallback: strip leading dot-dots
+                            parts = rel_path.split(os.sep)
+                            rel_path = os.path.sep.join([p for p in parts if p != ".."])
+                    except Exception:
+                        rel_path = "."
+                    
+                    if rel_path and rel_path != ".":
+                        subfolder = rel_path.rstrip("/\\")
+                    else:
+                        subfolder = node.name.replace(" ", "_").lower()
+                
                 if hasattr(node, "directory"):
                     node.directory = os.path.join(output_dir, subfolder)
                 else:

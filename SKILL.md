@@ -2,7 +2,7 @@
 name: synthclaw
 license: MIT
 metadata:
-  version: 0.2.3
+  version: 0.2.4
 description: Render Blender files with agent-controlled procedural parameters for synthetic data generation. A key capability of this skill is returning dynamic quality metrics (Naturalness and LPIPS) upon generation and measuring dataset-wide diversity (Shannon entropy), allowing agents to be guided by the metric results to iteratively optimize parameter ranges and improve synthetic data usefulness. Supports CYCLES (production) and EEVEE (fast testing) render engines.
 ---
 
@@ -114,11 +114,15 @@ Convenience function for production Cycles rendering. Same as `render_procedural
 
 Generates a procedural dataset from any `.blend` file by applying dynamic randomization rules frame-by-frame and routing compositor file outputs automatically.
 
+> [!NOTE]
+> **Compositor Path Preservation**: The skill automatically detects and preserves any relative output paths configured in the `.blend` file's Compositor `File Output` nodes (e.g. `images/`, `masks/well_masks/`, or `../output/masks/plaque_masks/`), stripping parent traversal prefixes and routing them cleanly under the user-defined `output_dir`.
+
 **Parameters:**
 - `blend_file` (string, required): Absolute path to the .blend file
 - `output_dir` (string, required): Absolute path where generated images/masks will be saved
 - `num_images` (integer, optional): Number of images to render (default: 2)
-- `randomizations` (array of objects, optional): List of randomization rules specifying target elements and distribution parameters
+- `randomizations` (array of objects, optional): List of randomization rules.
+  * Supported distributions: `"uniform"`, `"int_range"`, `"boolean"`, `"choice"`, and `"sequence"` (cycles through the provided list of range/choices frame-by-frame).
 - `engine` (string, optional): `"CYCLES"` (default) or `"EEVEE"`
 - `samples` (integer, optional): Cycles samples per frame (default: 128)
 
