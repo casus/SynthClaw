@@ -1,11 +1,48 @@
 import os
 import bpy
 
+def ensure_composite_node(scene):
+    """
+    Ensures a Composite node is present in the compositor node tree and linked
+    to the primary File Output's input. This guarantees that standard render commands
+    output the final fused image instead of falling back to the active view layer.
+    """
+    if scene.use_nodes and scene.compositing_node_group:
+        nodes = scene.compositing_node_group.nodes
+        links = scene.compositing_node_group.links
+        
+        has_composite = any(n.type in ['COMPOSITE', 'GROUP_OUTPUT'] for n in nodes)
+        if has_composite:
+            return
+            
+        file_output_node = nodes.get("File Output")
+        if not file_output_node:
+            for n in nodes:
+                if n.type == 'OUTPUT_FILE':
+                    file_output_node = n
+                    break
+                    
+        if file_output_node and file_output_node.inputs:
+            input_socket = file_output_node.inputs[0]
+            if input_socket.is_linked:
+                link = input_socket.links[0]
+                from_socket = link.from_socket
+                
+                try:
+                    composite_node = nodes.new(type='CompositorNodeComposite')
+                except RuntimeError:
+                    composite_node = nodes.new(type='NodeGroupOutput')
+                
+                composite_node.location = (file_output_node.location.x, file_output_node.location.y - 300)
+                links.new(from_socket, composite_node.inputs[0])
+                print(f"[SynthClaw] Compositor: Created missing Composite node and linked it to '{from_socket.node.name}'")
+
 def configure_compositor_outputs(scene, output_dir, frame_idx):
     """
     Finds all File Output nodes in Compositor and dynamically routes
     their exports to structured subfolders.
     """
+    ensure_composite_node(scene)
     configured_any = False
     if scene.use_nodes and scene.compositing_node_group:
         for node in scene.compositing_node_group.nodes:
